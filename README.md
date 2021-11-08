@@ -3,7 +3,7 @@ Ejemplo del ejerccio de R2-D2 usado en clase.
 
 [![Java](https://img.shields.io/badge/Code-Java%20v11-blue)](https://www.java.com/es/)
 [![LISENCE](https://img.shields.io/badge/Lisence-MIT-green)]()
-![GitHub](https://img.shields.io/github/last-commit/joseluisgs/Blog-JPA-Hibernate-OGM-AccesoDatos-2021-2022)
+![GitHub](https://img.shields.io/github/last-commit/joseluisgs/R2D2-Endor-AccesoDatos)
 
 
 ![imagen](https://cdnb.artstation.com/p/assets/images/images/016/922/017/large/serhii-sirenko-r2-art-3.jpg)
