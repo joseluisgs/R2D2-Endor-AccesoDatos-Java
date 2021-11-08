@@ -1,5 +1,5 @@
 # R2D2 y las Lunas de Endor - AccesoDatos-2021-2022
-Ejemplo del ejerccio de R2-D2 usado en clase.
+Nuestro amigo R2-D2 ha sido enviado junto a Luke Skywalker debido a una serie de problemas relacionados con la contaminación en la Luna de Endor. Problema de API Stream, XML para Acceso a Datos.
 
 [![Java](https://img.shields.io/badge/Code-Java%20v11-blue)](https://www.java.com/es/)
 [![LISENCE](https://img.shields.io/badge/Lisence-MIT-green)]()
