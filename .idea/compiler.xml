@@ -8,6 +8,7 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="rdd2-data" />
+        <module name="R2D2-Endor-AccesoDatos" />
       </profile>
     </annotationProcessing>
   </component>

@@ -10,7 +10,6 @@ import es.joseluisgs.dam.service.XMLService;
 import es.joseluisgs.dam.service.XPATHService;
 import es.joseluisgs.dam.utils.FileResources;
 import org.jdom2.JDOMException;
-import org.w3c.dom.Document;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
@@ -20,7 +19,10 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URISyntaxException;
 import java.time.Instant;
-import java.util.*;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -45,6 +47,13 @@ public class R2D2Controller {
         return instance;
     }
 
+    // Para quitra con un predicado y no hacer un for if
+    private static <T> Predicate<T> distinctByKey(
+            Function<? super T, ?> keyExtractor) {
+        Map<Object, Boolean> seen = new ConcurrentHashMap<>();
+        return t -> seen.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
+    }
+
     public void loadData() {
         loadCSV();
         loadXML();
@@ -59,7 +68,8 @@ public class R2D2Controller {
                 medicionesCSV.stream());
         // Elimino los repetidos, podria hacerlo con for y si no existe lo miro, o buscando de uno en otro... mil formas
         mediciones = combinedStream
-                .filter(distinctByKey(Medicion::getId))
+                //.filter(distinctByKey(Medicion::getId))
+                .distinct() // Necesita el méttodo equals en la clase Medicion
                 .collect(Collectors.toList());
 
         //mediciones.forEach(System.out::println);
@@ -87,14 +97,6 @@ public class R2D2Controller {
         }
     }
 
-    // Para quitra con un predicado y no hacer un for if
-    private static <T> Predicate<T> distinctByKey(
-            Function<? super T, ?> keyExtractor) {
-        Map<Object, Boolean> seen = new ConcurrentHashMap<>();
-        return t -> seen.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
-    }
-
-
     // Vamos a procesar de 25 en 25
     public void proccessData() {
         informe = new Informe();
@@ -108,19 +110,25 @@ public class R2D2Controller {
 
             // Debemos salvarlo poco a poco por lo que vamos paginando dentro del for...
             // los resultados van a informe
-            informe.getEstadisticas().add(getEstadistica(mediciones.subList(i * PAGE_SIZE, Math.min((i + 1) * PAGE_SIZE, mediciones.size()))));
+            informe.getEstadisticas()
+                    .add(
+                            getEstadistica(
+                                    // mediciones.subList(i * PAGE_SIZE, Math.min((i + 1) * PAGE_SIZE, mediciones.size()))
+                                    mediciones.parallelStream().skip(i * PAGE_SIZE).limit(PAGE_SIZE).collect(Collectors.toList())
+                            )
+                    );
         }
 
     }
 
     private Estadistica getEstadistica(List<Medicion> list) {
-            // Mil maneras de hacerlo...
-            // Por ejemplo así por cada medicion
+        // Mil maneras de hacerlo...
+        // Por ejemplo así por cada medicion
 //            DoubleSummaryStatistics stats = list.stream().mapToDouble(Medicion::getNO2).summaryStatistics();
 //            System.out.println(stats);
-            // Ahora buscamos las fechas por esos resultados...
+        // Ahora buscamos las fechas por esos resultados...
 
-            // O así por cada medicion, pero como quiero la fecha lo voy a hacer así
+        // O así por cada medicion, pero como quiero la fecha lo voy a hacer así
 
 
         /*stream.max((m1, m2) -> Double.compare(m1.getNO2(), m2.getNO2()))
@@ -147,7 +155,7 @@ public class R2D2Controller {
                 });
         // Media
         list.parallelStream().mapToDouble(Medicion::getNO2).average()
-                .ifPresent(x-> es.getNO2().setAverageValue(x));
+                .ifPresent(x -> es.getNO2().setAverageValue(x));
 
         // Temperatura
         list.parallelStream().max(Comparator.comparingDouble(Medicion::getTemperatura))
@@ -161,7 +169,7 @@ public class R2D2Controller {
                     es.getTemperatura().setMinDate(min.getFecha());
                 });
         list.parallelStream().mapToDouble(Medicion::getTemperatura).average()
-                .ifPresent(x-> es.getTemperatura().setAverageValue(x));
+                .ifPresent(x -> es.getTemperatura().setAverageValue(x));
 
         // CO2
         list.parallelStream().max(Comparator.comparingDouble(Medicion::getCO))
@@ -175,7 +183,7 @@ public class R2D2Controller {
                     es.getCO().setMinDate(min.getFecha());
                 });
         list.parallelStream().mapToDouble(Medicion::getCO).average()
-                .ifPresent(x-> es.getCO().setAverageValue(x));
+                .ifPresent(x -> es.getCO().setAverageValue(x));
 
         // Ozone
         list.parallelStream().max(Comparator.comparingDouble(Medicion::getOzone))
@@ -189,7 +197,7 @@ public class R2D2Controller {
                     es.getOzone().setMinDate(min.getFecha());
                 });
         list.parallelStream().mapToDouble(Medicion::getOzone).average()
-                .ifPresent(x-> es.getOzone().setAverageValue(x));
+                .ifPresent(x -> es.getOzone().setAverageValue(x));
 
         return es;
     }
@@ -206,7 +214,7 @@ public class R2D2Controller {
     }
 
     private void saveXML(String dir) {
-        String fileName = dir + "/" +  "informe.xml";
+        String fileName = dir + "/" + "informe.xml";
         JAXBService jaxb = JAXBService.getInstance();
         try {
             jaxb.writeXMLFile(fileName, informe);
@@ -216,7 +224,7 @@ public class R2D2Controller {
     }
 
     private void saveXSD(String dir) {
-        String fileName = dir + "/" +  "esquemas.xsd";
+        String fileName = dir + "/" + "esquemas.xsd";
         JAXBService jaxb = JAXBService.getInstance();
         try {
             jaxb.writeXSDFile(fileName);
@@ -255,17 +263,17 @@ public class R2D2Controller {
     }
 
     private void saveMarkdown(String dir, List<Resumen> listNO2, List<Resumen> listOzone) throws IOException, URISyntaxException {
-        String fileName = dir + "/" +  "informe.md";
+        String fileName = dir + "/" + "informe.md";
         FileResources resources = FileResources.getInstance();
         File file = resources.getPath(fileName);
-        final PrintWriter f = new PrintWriter(new FileWriter(file,true));
+        final PrintWriter f = new PrintWriter(new FileWriter(file, true));
         try {
             f.println("# RESUMEN DE DATOS");
             f.println("## NO2");
-            listNO2.forEach(x-> f.println("- " + x.toMarkDown()));
+            listNO2.forEach(x -> f.println("- " + x.toMarkDown()));
             f.println("");
             f.println("##Ozone");
-            listOzone.forEach(x-> f.println("- " + x.toMarkDown()));
+            listOzone.forEach(x -> f.println("- " + x.toMarkDown()));
         } finally {
             try {
                 f.close();
