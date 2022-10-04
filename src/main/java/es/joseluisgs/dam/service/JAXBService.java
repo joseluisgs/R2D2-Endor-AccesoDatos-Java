@@ -5,21 +5,19 @@ import es.joseluisgs.dam.model.Informe;
 import es.joseluisgs.dam.model.Medicion;
 import es.joseluisgs.dam.model.Resumen;
 import es.joseluisgs.dam.utils.FileResources;
+import jakarta.xml.bind.*;
 import org.w3c.dom.Document;
 
-import javax.xml.bind.*;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.stream.XMLEventWriter;
 import javax.xml.transform.Result;
 import javax.xml.transform.stream.StreamResult;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.util.List;
 
-public class JAXBService <T> {
+public class JAXBService<T> {
     private static JAXBService instance;
     private Marshaller marshaller;
     private Unmarshaller unmarshaller;
@@ -52,7 +50,7 @@ public class JAXBService <T> {
     }
 
     public Document toDOM(Informe informe) throws JAXBException, ParserConfigurationException {
-       // Creamos el documento con JDOM vacío
+        // Creamos el documento con JDOM vacío
         DocumentBuilderFactory domFactory = DocumentBuilderFactory.newInstance();
         DocumentBuilder domBuilder = domFactory.newDocumentBuilder();
         Document domDocument = domBuilder.newDocument();
@@ -87,10 +85,10 @@ public class JAXBService <T> {
 
 
         MySchemaOutputResolver(String fileName) throws IOException, URISyntaxException {
-             file = resources.getPath(fileName);
+            file = resources.getPath(fileName);
         }
 
-        public Result createOutput( String namespaceUri, String suggestedFileName ) throws IOException {
+        public Result createOutput(String namespaceUri, String suggestedFileName) throws IOException {
             return new StreamResult(file);
         }
     }

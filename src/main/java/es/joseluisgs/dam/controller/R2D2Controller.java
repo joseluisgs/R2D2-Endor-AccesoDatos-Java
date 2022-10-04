@@ -9,9 +9,9 @@ import es.joseluisgs.dam.service.JAXBService;
 import es.joseluisgs.dam.service.XMLService;
 import es.joseluisgs.dam.service.XPATHService;
 import es.joseluisgs.dam.utils.FileResources;
+import jakarta.xml.bind.JAXBException;
 import org.jdom2.JDOMException;
 
-import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.FileWriter;
@@ -114,7 +114,7 @@ public class R2D2Controller {
                     .add(
                             getEstadistica(
                                     // mediciones.subList(i * PAGE_SIZE, Math.min((i + 1) * PAGE_SIZE, mediciones.size()))
-                                    mediciones.parallelStream().skip(i * PAGE_SIZE).limit(PAGE_SIZE).collect(Collectors.toList())
+                                    mediciones.parallelStream().skip((long) i * PAGE_SIZE).limit(PAGE_SIZE).collect(Collectors.toList())
                             )
                     );
         }
